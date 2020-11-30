@@ -30,9 +30,9 @@ class CarInterface(CarInterfaceBase):
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint)
 
     ret.carName = "hyundai"
-    ret.safetyModel = car.CarParams.SafetyModel.hyundaiLegacy
-    #if candidate in [CAR.SONATA]:
-    #  ret.safetyModel = car.CarParams.SafetyModel.hyundai
+    ret.safetyModel = car.CarParams.SafetyModel.hyundaiCommunity #Legacy
+    if candidate in [CAR.GRANDEUR_HEV, CAR.GRANDEUR, CAR.SONATA]:
+     ret.safetyModel = car.CarParams.SafetyModel.hyundai
 
 
     params = Params()
@@ -101,7 +101,7 @@ class CarInterface(CarInterfaceBase):
       ret.wheelbase = 2.7
     elif candidate in [CAR.GRANDEUR, CAR.GRANDEUR_HEV]:
       ret.mass = 1640. + STD_CARGO_KG
-      ret.wheelbase = 2.845
+      ret.wheelbase = 2.885
     elif candidate == CAR.VELOSTER:
       ret.mass = 3558. * CV.LB_TO_KG
       ret.wheelbase = 2.80
