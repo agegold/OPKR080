@@ -1,4 +1,5 @@
 import numpy as np
+from common.numpy_fast import interp
 from selfdrive.controls.lib.drive_helpers import get_steer_max
 from common.numpy_fast import clip
 from common.realtime import DT_CTRL
@@ -24,6 +25,11 @@ class LatControlLQR():
     self.sat_count_rate = 1.0 * DT_CTRL
     self.sat_limit = CP.steerLimitTimer
 
+    self.angle_differ_range = [0, 60]
+    self.scale_range = [1800, self.scale]
+    self.new_scale = self.scale
+    self.ki_range = [0.02, self.ki]
+    self.new_ki = self.ki
     self.reset()
 
   def reset(self):
@@ -45,11 +51,13 @@ class LatControlLQR():
 
   def update(self, active, CS, CP, path_plan):
     lqr_log = log.ControlsState.LateralLQRState.new_message()
+    steering_angle = CS.steeringAngle
+    if CS.vEgo > 5:
+      self.new_scale = interp(abs(steering_angle), self.angle_differ_range, self.scale_range)
+      self.new_ki = interp(abs(steering_angle), self.angle_differ_range, self.ki_range)
 
     steers_max = get_steer_max(CP, CS.vEgo)
     torque_scale = (0.45 + CS.vEgo / 60.0)**2  # Scale actuator model with speed
-
-    steering_angle = CS.steeringAngle
 
     # Subtract offset. Zero angle should correspond to zero torque
     self.angle_steers_des = path_plan.angleSteers - path_plan.angleOffset
@@ -69,14 +77,14 @@ class LatControlLQR():
 
       # LQR
       u_lqr = float(self.angle_steers_des / self.dc_gain - self.K.dot(self.x_hat))
-      lqr_output = torque_scale * u_lqr / self.scale
+      lqr_output = torque_scale * u_lqr / self.new_scale #scale
 
       # Integrator
       if CS.steeringPressed:
         self.i_lqr -= self.i_unwind_rate * float(np.sign(self.i_lqr))
       else:
         error = self.angle_steers_des - angle_steers_k
-        i = self.i_lqr + self.ki * self.i_rate * error
+        i = self.i_lqr + self.new_ki * self.i_rate * error
         control = lqr_output + i
 
         if (error >= 0 and (control <= steers_max or i < 0.0)) or \
