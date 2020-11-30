@@ -26,21 +26,18 @@ DESIRES = {
     LaneChangeState.preLaneChange: log.PathPlan.Desire.none,
     LaneChangeState.laneChangeStarting: log.PathPlan.Desire.none,
     LaneChangeState.laneChangeFinishing: log.PathPlan.Desire.none,
-    LaneChangeState.laneChangeDone: log.PathPlan.Desire.none,
   },
   LaneChangeDirection.left: {
     LaneChangeState.off: log.PathPlan.Desire.none,
     LaneChangeState.preLaneChange: log.PathPlan.Desire.none,
     LaneChangeState.laneChangeStarting: log.PathPlan.Desire.laneChangeLeft,
     LaneChangeState.laneChangeFinishing: log.PathPlan.Desire.laneChangeLeft,
-    LaneChangeState.laneChangeDone: log.PathPlan.Desire.laneChangeLeft,
   },
   LaneChangeDirection.right: {
     LaneChangeState.off: log.PathPlan.Desire.none,
     LaneChangeState.preLaneChange: log.PathPlan.Desire.none,
     LaneChangeState.laneChangeStarting: log.PathPlan.Desire.laneChangeRight,
     LaneChangeState.laneChangeFinishing: log.PathPlan.Desire.laneChangeRight,
-    LaneChangeState.laneChangeDone: log.PathPlan.Desire.laneChangeRight,
   },
 }
 
@@ -48,7 +45,7 @@ DESIRES = {
 def calc_states_after_delay(states, v_ego, steer_angle, curvature_factor, steer_ratio, delay):
   states[0].x = v_ego * delay
   states[0].psi = v_ego * curvature_factor * math.radians(steer_angle) / steer_ratio * delay
-  states[0].y = states[0].x * math.sin(states[0].psi / 2)  
+  states[0].y = states[0].x * math.sin(states[0].psi / 2)
   return states
 
 
@@ -58,7 +55,6 @@ class PathPlanner():
 
     self.last_cloudlog_t = 0
     self.steer_rate_cost = CP.steerRateCost
-    self.new_steer_rate_cost = CP.steerRateCost
 
     self.setup_mpc()
     self.solution_invalid_cnt = 0
@@ -90,22 +86,23 @@ class PathPlanner():
     self.lane_change_adjust_vel = [8.3, 16, 22, 30]
     self.lane_change_adjust_new = 0.0
 
-    self.angle_differ_range = [0, 60]
+    self.angle_differ_range = [0, 45]
     self.steerRatio_range = [CP.steerRatio, 17.5]
     self.new_steerRatio = CP.steerRatio
+    self.new_steerRatio_prev = CP.steerRatio
 
-    self.steer_rate_cost_range = [CP.steerRateCost, 0.1]
+    self.new_steer_rate_cost = CP.steerRateCost
+    #self.steer_rate_cost_range = [CP.steerRateCost, 0.1]
 
-    self.steer_actuator_delay_range_angle = [0.25, 0.15]
-    self.steer_actuator_delay_range = [0.15, CP.steerActuatorDelay]
-    self.steer_actuator_delay_vel = [3, 22]
+    self.steer_actuator_delay_range = [0.1, CP.steerActuatorDelay]
+    self.steer_actuator_delay_vel = [3, 13]
     self.new_steer_actuator_delay = CP.steerActuatorDelay
 
     self.angle_offset_select = int(Params().get('OpkrAngleOffsetSelect'))
 
   def setup_mpc(self):
     self.libmpc = libmpc_py.libmpc
-    self.libmpc.init(MPC_COST_LAT.PATH, MPC_COST_LAT.LANE, MPC_COST_LAT.HEADING, self.new_steer_rate_cost)
+    self.libmpc.init(MPC_COST_LAT.PATH, MPC_COST_LAT.LANE, MPC_COST_LAT.HEADING, self.steer_rate_cost)
 
     self.mpc_solution = libmpc_py.ffi.new("log_t *")
     self.cur_state = libmpc_py.ffi.new("state_t *")
@@ -138,41 +135,41 @@ class PathPlanner():
     angle_offset = sm['liveParameters'].angleOffset
     live_steer_ratio = sm['liveParameters'].steerRatio
     if live_steer_ratio != CP.steerRatio:
-      self.steerRatio_range = [CP.steerRatio, live_steer_ratio]    
+      self.steerRatio_range = [CP.steerRatio, live_steer_ratio]
 
     # Run MPC
-    #self.angle_steers_des_prev = self.angle_steers_des_mpc
+    self.angle_steers_des_prev = self.angle_steers_des_mpc
 
-    #self.angle_diff = abs(anglesteer_desire) - abs(anglesteer_current)
+    self.angle_diff = abs(anglesteer_desire) - abs(anglesteer_current)
 
-    if v_ego > 5:
-      self.new_steerRatio = interp(abs(anglesteer_current), self.angle_differ_range, self.steerRatio_range)
-      # self.new_steer_rate_cost = interp(abs(anglesteer_current), self.angle_differ_range, self.steer_rate_cost_range)
+    if abs(output_scale) >= 1 and v_ego > 8:
+      self.new_steerRatio_prev = interp(self.angle_diff, self.angle_differ_range, self.steerRatio_range)
+      if self.new_steerRatio_prev > self.new_steerRatio:
+        self.new_steerRatio = self.new_steerRatio_prev
+      #self.new_steer_rate_cost = interp(self.angle_diff, self.angle_differ_range, self.steer_rate_cost_range)
     #if abs(output_scale) >= 1 and v_ego > 8 and ((abs(anglesteer_desire) - abs(anglesteer_current)) > 20):
-    #   self.mpc_frame += 1
-    #   if self.mpc_frame % 10 == 0:
-    #     self.new_steerRatio += (round(v_ego, 1) * 0.025)
-    #     if live_steer_ratio != CP.steerRatio:        
-    #       if self.new_steerRatio >= live_steer_ratio:
-    #         self.new_steerRatio = live_steer_ratio
-    #     else:
-    #       if self.new_steerRatio >= 17.0:
-    #         self.new_steerRatio = 17.0
-    #     self.mpc_frame = 0
-    # else:
-    #   self.mpc_frame += 1
-    #   if self.mpc_frame % 5 == 0:
-    #     self.new_steerRatio -= 0.2
-    #     if self.new_steerRatio <= CP.steerRatio:
-    #       self.new_steerRatio = CP.steerRatio
-    #     # self.new_steer_rate_cost += 0.02
-    #     # if self.new_steer_rate_cost >= CP.steerRateCost:
-    #     #  self.new_steer_rate_cost = CP.steerRateCost
-    #     self.mpc_frame = 0
+    #  self.mpc_frame += 1
+    #  if self.mpc_frame % 10 == 0:
+    #    self.new_steerRatio += (round(v_ego, 1) * 0.025)
+    #    if live_steer_ratio != CP.steerRatio:        
+    #      if self.new_steerRatio >= live_steer_ratio:
+    #        self.new_steerRatio = live_steer_ratio
+    #    else:
+    #      if self.new_steerRatio >= 17.5:
+    #        self.new_steerRatio = 17.5
+    #    self.mpc_frame = 0
+    else:
+      self.mpc_frame += 1
+      if self.mpc_frame % 10 == 0:
+        self.new_steerRatio -= 0.1
+        if self.new_steerRatio <= CP.steerRatio:
+          self.new_steerRatio = CP.steerRatio
+        #self.new_steer_rate_cost += 0.02
+        #if self.new_steer_rate_cost >= CP.steerRateCost:
+        #  self.new_steer_rate_cost = CP.steerRateCost
+        self.mpc_frame = 0
 
     self.new_steer_actuator_delay = interp(v_ego, self.steer_actuator_delay_vel, self.steer_actuator_delay_range)
-    #self.new_steer_actuator_delay = interp(abs(anglesteer_current), self.angle_differ_range, self.steer_actuator_delay_range_angle)
-
 
     # Update vehicle model
     x = max(sm['liveParameters'].stiffnessFactor, 0.1)
@@ -194,7 +191,7 @@ class PathPlanner():
       self.lane_change_direction = LaneChangeDirection.right
 
     #if (not active) or (self.lane_change_timer > LANE_CHANGE_TIME_MAX) or (not one_blinker) or (not self.lane_change_enabled):
-    if (not active) or (self.lane_change_timer > LANE_CHANGE_TIME_MAX) or (not self.lane_change_enabled) or abs(output_scale) >= 0.9:
+    if (not active) or (self.lane_change_timer > LANE_CHANGE_TIME_MAX) or (not self.lane_change_enabled) or ( abs(output_scale) >= 0.9 and self.lane_change_timer > 1):
       self.lane_change_state = LaneChangeState.off
       self.lane_change_direction = LaneChangeDirection.none
     else:
@@ -228,21 +225,16 @@ class PathPlanner():
         self.lane_change_adjust_new = interp(v_ego, self.lane_change_adjust_vel, self.lane_change_adjust)
         self.lane_change_ll_prob = max(self.lane_change_ll_prob - self.lane_change_adjust_new*DT_MDL, 0.0)
         # 98% certainty
-        if lane_change_prob < 0.02 and self.lane_change_ll_prob < 0.01:
+        if lane_change_prob < 0.03 and self.lane_change_ll_prob < 0.02:
           self.lane_change_state = LaneChangeState.laneChangeFinishing
 
       # finishing
       elif self.lane_change_state == LaneChangeState.laneChangeFinishing:
         # fade in laneline over 1s
         self.lane_change_ll_prob = min(self.lane_change_ll_prob + DT_MDL, 1.0)
-        if one_blinker and self.lane_change_ll_prob > 0.99:
+        if one_blinker and self.lane_change_ll_prob > 0.98:
           self.lane_change_state = LaneChangeState.preLaneChange
-        elif self.lane_change_ll_prob > 0.99:
-          self.lane_change_state = LaneChangeState.laneChangeDone
-
-      # done
-      elif self.lane_change_state == LaneChangeState.laneChangeDone:
-        if not one_blinker:
+        elif self.lane_change_ll_prob > 0.98:
           self.lane_change_state = LaneChangeState.off
 
     if self.lane_change_state in [LaneChangeState.off, LaneChangeState.preLaneChange]:
