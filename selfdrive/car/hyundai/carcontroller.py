@@ -278,8 +278,8 @@ class CarController():
       self.lanechange_manual_timer = 50
     if CS.out.leftBlinker and CS.out.rightBlinker:
       self.emergency_manual_timer = 50
-    if self.lanechange_manual_timer:
-      lkas_active = 0
+    # if self.lanechange_manual_timer:   # 저속에서 방향지시등 켰을때 차선을 계속 유지하려면 이 부분을 막으면 됨
+    #   lkas_active = 0
     if self.lanechange_manual_timer > 0:
       self.lanechange_manual_timer -= 1
     if self.emergency_manual_timer > 0:
