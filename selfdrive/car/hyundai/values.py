@@ -143,7 +143,7 @@ else:
     CAR.NEXO: [{}],
     # kia
     CAR.FORTE: [{}],
-    CAR.OPTIMA: [{}],~
+    CAR.OPTIMA: [{}],
     CAR.OPTIMA_HEV: [{}],
     CAR.SPORTAGE: [{}],
     CAR.SORENTO: [{}],
