@@ -71,6 +71,7 @@ class LanePlanner:
     Poly_differ = round(abs(self.l_poly[3] + self.r_poly[3]), 2)
 
     if mode_select == 3 and v_ego > 8:
+      lean_offset = -0.03      
       if curvature > 0.0008 and (self.l_poly[3] + self.r_poly[3]) <= 0.2: # left curve
         if Poly_differ > 0.6:
           Poly_differ = 0.6
@@ -80,7 +81,7 @@ class LanePlanner:
         if Poly_differ > 0.6:
           Poly_differ = 0.6
         if (self.l_poly[3] + self.r_poly[3]) <= 0:
-          lean_offset = -0.25 * Poly_differ #move the car to right at left curve
+          lean_offset = -0.25 * Poly_differ #move the car to right at right curve
       else:
         lean_offset = -0.03
     # only offset left and right lane lines; offsetting p_poly does not make sense
