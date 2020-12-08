@@ -162,7 +162,6 @@ class CarState(CarStateBase):
     if self.CP.carFingerprint in FEATURES["use_cluster_gears"]:
       gear_disp = cp.vl["CLU15"]
       print(gear_disp)
-      print(gear)      
       if cp.vl["CLU15"]["CF_Clu_InhibitD"] == 1:
         ret.gearShifter = GearShifter.drive
       elif cp.vl["CLU15"]["CF_Clu_InhibitN"] == 1:
