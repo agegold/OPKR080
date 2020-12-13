@@ -151,10 +151,10 @@ class CarState(CarStateBase):
 
     self.cruiseGapSet = cp_scc.vl["SCC11"]['TauGapSet']
 
-    print(cp.vl["CLU15"])
-    print(cp.vl["TCU12"])
-    print(cp.vl["ELECT_GEAR"])
-    print(cp.vl["LVR12"])
+    # print(cp.vl["CLU15"])
+    # print(cp.vl["TCU12"])
+    # print(cp.vl["ELECT_GEAR"])
+    # print(cp.vl["LVR12"])
 
     # TODO: refactor gear parsing in function
     # Gear Selection via Cluster - For those Kia/Hyundai which are not fully discovered, we can use the Cluster Indicator for Gear Selection,
