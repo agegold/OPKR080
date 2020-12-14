@@ -21,7 +21,6 @@ class CAR:
   GENESIS_G70 = "GENESIS G70 2018"
   GENESIS_G80 = "GENESIS G80 2017"
   GENESIS_G90 = "GENESIS G90 2017"
-  GENESIS_G90_L = "GENESIS G90 LIMOUSINE"
   # hyundai
   ELANTRA = "HYUNDAI ELANTRA LIMITED ULTIMATE 2017"
   ELANTRA_GT_I30 = "HYUNDAI I30 N LINE 2019 & GT 2018 DCT"
@@ -29,12 +28,11 @@ class CAR:
   SONATA_HEV = "HYUNDAI SONATA HEV 2020"
   SONATA19 = "HYUNDAI SONATA 2019"
   SONATA19_HEV = "HYUNDAI SONATA 2019 HEV"
-  SONATA_LF_TURBO = "HYUNDAI SONATA LF TURBO"
   KONA = "HYUNDAI KONA 2019"
   KONA_EV = "HYUNDAI KONA EV 2019"
   KONA_HEV = "HYUNDAI KONA HEV 2019"
-  IONIQ = "HYUNDAI IONIQ HYBRID PREMIUM 2017"
-  IONIQ_EV_LTD = "HYUNDAI IONIQ ELECTRIC LIMITED 2019"
+  IONIQ_EV = "HYUNDAI IONIQ ELECTRIC LIMITED 2019"
+  IONIQ_HEV = "HYUNDAI IONIQ HYBRID PREMIUM 2017"
   SANTA_FE = "HYUNDAI SANTA FE LIMITED 2019"
   PALISADE = "HYUNDAI PALISADE 2020"
   VELOSTER = "HYUNDAI VELOSTER 2019"
@@ -45,7 +43,7 @@ class CAR:
   FORTE = "KIA FORTE E 2018"
   OPTIMA = "KIA OPTIMA SX 2019 & 2016"
   OPTIMA_HEV = "KIA OPTIMA HYBRID 2017 & SPORTS 2019"
-  SPORTAGE = "KIA SPORTAGE S 2020"  
+  SPORTAGE = "KIA SPORTAGE S 2020"
   SORENTO = "KIA SORENTO GT LINE 2018"
   STINGER = "KIA STINGER GT2 2018"
   NIRO_EV = "KIA NIRO EV 2020 PLATINUM"
@@ -64,14 +62,13 @@ class Buttons:
 params = Params()
 fingerprint_issued_fix = params.get('FingerprintIssuedFix') == "1"
 
-if fingerprint_issued_fix:
+if fingerprint_issued_fix: # 핑거인식문제 혹은 다른차량과 핑거프린트 충돌이 나는경우 여기다가 핑거를 넣으시고 개발자 메뉴에서 핑거프린트 이슈차량 전용을 켜면 적용됩니다.
   FINGERPRINTS = {
     # genesis
     CAR.GENESIS: [{}],
     CAR.GENESIS_G70: [{}],
     CAR.GENESIS_G80: [{}],
     CAR.GENESIS_G90: [{}],
-    CAR.GENESIS_G90_L: [{}],
     # hyundai
     CAR.ELANTRA: [{}],
     CAR.ELANTRA_GT_I30: [{}],
@@ -79,12 +76,11 @@ if fingerprint_issued_fix:
     CAR.SONATA_HEV: [{}],
     CAR.SONATA19: [{}],
     CAR.SONATA19_HEV: [{}],
-    CAR.SONATA_LF_TURBO: [{}],
     CAR.KONA: [{}],
     CAR.KONA_EV: [{}],
     CAR.KONA_HEV: [{}],
-    CAR.IONIQ: [{}],
-    CAR.IONIQ_EV_LTD: [{}],
+    CAR.IONIQ_HEV: [{}],
+    CAR.IONIQ_EV: [{}],
     CAR.SANTA_FE: [{}],
     CAR.PALISADE: [{}],
     CAR.VELOSTER: [{}], 
@@ -104,7 +100,7 @@ if fingerprint_issued_fix:
     CAR.CADENZA: [{}],  
     CAR.CADENZA_HEV: [{}]
   }
-else:
+else: # 핑거 프린트 이슈 없는 차량은 이곳에 넣으세요.
   FINGERPRINTS = {
     # genesis
     CAR.GENESIS: [{}],
@@ -119,14 +115,15 @@ else:
     CAR.SONATA_HEV: [{}],
     CAR.SONATA19: [{}],
     CAR.SONATA19_HEV: [{}],
-    CAR.SONATA_LF_TURBO: [{}],
     CAR.KONA: [{}],
     CAR.KONA_EV: [{}],
     CAR.KONA_HEV: [{}],
-    CAR.IONIQ: [{}],
-    CAR.IONIQ_EV_LTD: [{127: 8, 304: 8, 320: 8, 339: 8, 352: 8, 356: 4, 544: 7, 593: 8, 688: 5, 832: 8, 881: 8, 882: 8, 897: 8, 902: 8, 903: 8, 916: 8, 1040: 8, 1056: 8, 1057: 8, 1078: 4, 1136: 8, 1151: 6, 1168: 7, 1173: 8, 1265: 4, 1280: 1, 1287: 4, 1290: 8, 1291: 8, 1292: 8, 1294: 8, 1322: 8, 1342: 6, 1345: 8, 1348: 8, 1355: 8, 1363: 8, 1369: 8, 1407: 8, 1419: 8, 1425: 2, 1426: 8, 1427: 6, 1429: 8, 1430: 8, 1456: 4, 1470: 8, 1507: 8, 1535: 8},
-                       {127: 8, 304: 8, 320: 8, 339: 8, 352: 8, 356: 4, 544: 7, 545: 8, 546: 8, 548: 8, 549: 8, 593: 8, 688: 5, 832: 8, 881: 8, 882: 8, 897: 8, 902: 8, 903: 8, 916: 8, 1040: 8, 1056: 8, 1057: 8, 1078: 4, 1136: 8, 1151: 6, 1168: 7, 1173: 8, 1265: 4, 1280: 1, 1287: 4, 1290: 8, 1291: 8, 1292: 8, 1294: 8, 1322: 8, 1345: 8, 1348: 8, 1355: 8, 1363: 8, 1369: 8, 1407: 8, 1419: 8, 1426: 8, 1427: 6, 1429: 8, 1430: 8, 1456: 4, 1470: 8, 1507: 8, 1535: 8},
-                       {127: 8, 304: 8, 320: 8, 339: 8, 352: 8, 356: 4, 544: 7, 546: 8, 832: 8, 881: 8, 882: 8, 902: 8, 903: 8, 916: 8, 1040: 8, 1056: 8, 1057: 8, 1078: 4, 1136: 8, 1151: 6, 1168: 7, 1173: 8, 1265: 4, 1280: 1, 1287: 4, 1290: 8, 1291: 8, 1292: 8, 1294: 8, 1322: 8, 1345: 8, 1348: 8, 1355: 8, 1363: 8, 1369: 8, 1407: 8, 1419: 8, 1426: 8, 1427: 6, 1429: 8, 1430: 8, 1456: 4, 1470: 8, 1507: 8}],    
+    CAR.IONIQ_HEV: [{68: 8, 127: 8, 304: 8, 320: 8, 339: 8, 352: 8, 356: 4, 544: 8, 576: 8, 593: 8, 688: 5, 881: 8, 882: 8, 897: 8, 902: 8, 903: 8, 916: 8, 1040: 8, 1056: 8, 1057: 8, 1078: 4, 1136: 6, 1173: 8, 1225: 8, 1265: 4, 1280: 1, 1287: 4, 1290: 8, 1291: 8, 1292: 8, 1294: 8, 1322: 8, 1345: 8, 1348: 8, 1355: 8, 1363: 8, 1369: 8, 1407: 8, 1419: 8, 1427: 6, 1429: 8, 1430: 8, 1448: 8, 1456: 4, 1470:8, 1476: 8, 1535: 8},
+                    {68: 8, 127: 8, 304: 8, 320: 8, 339: 8, 352: 8, 356: 4, 544: 8, 576:8, 593: 8, 688: 5, 832: 8, 881: 8, 882: 8, 897: 8, 902: 8, 903: 8, 916: 8, 1040: 8, 1056: 8, 1057: 8, 1078: 4, 1136: 6, 1173: 8, 1225: 8, 1265: 4, 1280: 1, 1287: 4, 1290: 8, 1291: 8, 1292: 8, 1294: 8, 1322: 8, 1342: 6, 1345: 8, 1348: 8, 1355: 8, 1363: 8, 1369: 8, 1407: 8, 1427: 6, 1429: 8, 1430: 8, 1448: 8, 1456: 4, 1470: 8, 1476: 8, 1535: 8},
+                    {68: 8, 127: 8, 304: 8, 320: 8, 339: 8, 352: 8, 544: 8, 576: 8, 832: 8, 881: 8, 882: 8, 902: 8, 903: 8, 916: 8, 1040: 8, 1056: 8, 1057: 8, 1078: 4, 1136: 6, 1173: 8, 1225: 8, 1265: 4, 1280: 1, 1287: 4, 1290: 8, 1291: 8, 1292: 8, 1294: 8, 1322: 8, 1342: 6, 1345: 8, 1348: 8, 1355: 8, 1363: 8, 1369: 8, 1407: 8, 1427: 6, 1429: 8, 1430: 8, 1448: 8, 1456: 4, 1470: 8, 1476: 8, 1535: 8}],
+    CAR.IONIQ_EV: [{127: 8, 304: 8, 320: 8, 339: 8, 352: 8, 356: 4, 544: 7, 593: 8, 688: 5, 832: 8, 881: 8, 882: 8, 897: 8, 902: 8, 903: 8, 916: 8, 1040: 8, 1056: 8, 1057: 8, 1078: 4, 1136: 8, 1151: 6, 1168: 7, 1173: 8, 1265: 4, 1280: 1, 1287: 4, 1290: 8, 1291: 8, 1292: 8, 1294: 8, 1322: 8, 1342: 6, 1345: 8, 1348: 8, 1355: 8, 1363: 8, 1369: 8, 1407: 8, 1419: 8, 1425: 2, 1426: 8, 1427: 6, 1429: 8, 1430: 8, 1456: 4, 1470: 8, 1507: 8, 1535: 8},
+                    {127: 8, 304: 8, 320: 8, 339: 8, 352: 8, 356: 4, 544: 7, 545: 8, 546: 8, 548: 8, 549: 8, 593: 8, 688: 5, 832: 8, 881: 8, 882: 8, 897: 8, 902: 8, 903: 8, 916: 8, 1040: 8, 1056: 8, 1057: 8, 1078: 4, 1136: 8, 1151: 6, 1168: 7, 1173: 8, 1265: 4, 1280: 1, 1287: 4, 1290: 8, 1291: 8, 1292: 8, 1294: 8, 1322: 8, 1345: 8, 1348: 8, 1355: 8, 1363: 8, 1369: 8, 1407: 8, 1419: 8, 1426: 8, 1427: 6, 1429: 8, 1430: 8, 1456: 4, 1470: 8, 1507: 8, 1535: 8},
+                    {127: 8, 304: 8, 320: 8, 339: 8, 352: 8, 356: 4, 544: 7, 546: 8, 832: 8, 881: 8, 882: 8, 902: 8, 903: 8, 916: 8, 1040: 8, 1056: 8, 1057: 8, 1078: 4, 1136: 8, 1151: 6, 1168: 7, 1173: 8, 1265: 4, 1280: 1, 1287: 4, 1290: 8, 1291: 8, 1292: 8, 1294: 8, 1322: 8, 1345: 8, 1348: 8, 1355: 8, 1363: 8, 1369: 8, 1407: 8, 1419: 8, 1426: 8, 1427: 6, 1429: 8, 1430: 8, 1456: 4, 1470: 8, 1507: 8}],    
     CAR.SANTA_FE: [{}],
     CAR.PALISADE: [{}],
     CAR.VELOSTER: [{}], 
@@ -155,10 +152,6 @@ else:
     CAR.CADENZA_HEV: [{}]
   }
 
-ECU_FINGERPRINT = {
-  Ecu.fwdCamera: [832, 1156, 1191, 1342]
-}
-
 # Don't use these fingerprints for fingerprinting, they are still used for ECU detection
 IGNORED_FINGERPRINTS = [CAR.VELOSTER, CAR.GENESIS_G70, CAR.KONA]
 
@@ -168,35 +161,35 @@ CHECKSUM = {
 }
 
 FEATURES = {
+  # 캔오류 관련, 오류가 발생하는 경우는 본인 차종에 맞지 않는 캔신호가 들어오기때문입니다. 대부분 이곳을 수정하면 해결되나, 부득이 판다코드를 수정해야 될수도 있습니다.
+  # debug 코드가 포함되어 있으면, /data/openpilot/selfdrive/debug 안에 몇가지 툴이 들어있습니다. 실행하시면 디버그에 도움이 되실겁니다. 팟팅!!!   
   # Use Cluster for Gear Selection, rather than Transmission
   "use_cluster_gears": {CAR.ELANTRA, CAR.KONA, CAR.ELANTRA_GT_I30, CAR.CADENZA, CAR.GRANDEUR},
   # Use TCU Message for Gear Selection
-  "use_tcu_gears": {CAR.OPTIMA, CAR.SONATA19, CAR.VELOSTER, CAR.SONATA_LF_TURBO},
+  "use_tcu_gears": {CAR.OPTIMA, CAR.SONATA19, CAR.VELOSTER},
   # Use E_GEAR Message for Gear Selection
-  "use_elect_gears": {CAR.OPTIMA_HEV, CAR.IONIQ_EV_LTD, CAR.KONA_EV, CAR.SONATA_HEV, CAR.NIRO_EV, CAR.CADENZA_HEV,
-                      CAR.GRANDEUR_HEV, CAR.NEXO, CAR.NIRO_HEV},
+  "use_elect_gears": {CAR.SONATA_HEV, CAR.SONATA19_HEV, CAR.KONA_EV, CAR.KONA_HEV, CAR.IONIQ_EV, CAR.IONIQ_HEV, CAR.GRANDEUR_HEV, CAR.NEXO,
+                      CAR.OPTIMA_HEV, CAR.CADENZA_HEV, CAR.NIRO_EV}, # 전기차 or 하이브리드 기어인식 부분
   # Use E_EMS11 Message for Gas and Brake for Hybrid/ELectric
-  "use_elect_ems": {CAR.OPTIMA_HEV, CAR.IONIQ_EV_LTD, CAR.KONA_EV, CAR.SONATA_HEV, CAR.NIRO_EV, CAR.CADENZA_HEV,
-                    CAR.GRANDEUR_HEV, CAR.NEXO, CAR.NIRO_HEV},
+  "use_elect_ems": {CAR.OPTIMA_HEV, CAR.IONIQ_EV, CAR.IONIQ_HEV, CAR.KONA_EV, CAR.SONATA_HEV, CAR.NIRO_EV, CAR.CADENZA_HEV,
+                    CAR.GRANDEUR_HEV, CAR.NEXO, CAR.NIRO_HEV}, # 전기차 or 하이브리드 차량 넣어주세요.(가속페달관련)
   # send LFA MFA message for new HKG models
-  "send_lfa_mfa": {CAR.GRANDEUR_HEV, CAR.GRANDEUR},
+  "send_lfa_mfa": {CAR.GRANDEUR_HEV, CAR.GRANDEUR}, #차량의 LFA아이콘(핸들모양 아이콘)을 켜지게 하려면 여기다가 본인 차종을 넣으세요.
   "has_scc13": set([]), 
   "has_scc14": set([]), 
   # these cars use the FCA11 message for the AEB and FCW signals, all others use SCC12
-  "use_fca": {CAR.SONATA, CAR.ELANTRA, CAR.ELANTRA_GT_I30, CAR.STINGER, CAR.IONIQ, CAR.KONA, CAR.KONA_EV, CAR.FORTE,
-              CAR.GRANDEUR_HEV, CAR.GRANDEUR, CAR.PALISADE, CAR.GENESIS_G70},
+  "use_fca": {CAR.SONATA, CAR.ELANTRA, CAR.ELANTRA_GT_I30, CAR.STINGER, CAR.IONIQ_HEV, CAR.KONA, CAR.KONA_EV, CAR.FORTE,
+              CAR.GRANDEUR_HEV, CAR.GRANDEUR, CAR.PALISADE, CAR.GENESIS_G70}, # 전방추돌관련 계기판 오류가 발생할 경우 여기다 본인 차종을 넣어보세요.
   "use_bsm": {CAR.SONATA, CAR.PALISADE, CAR.GENESIS, CAR.GENESIS_G70, CAR.GENESIS_G80, CAR.GENESIS_G90,
-              CAR.GRANDEUR_HEV, CAR.GRANDEUR, CAR.GENESIS_G90_L, CAR.KONA, CAR.OPTIMA_HEV},
-  "use_blinker_flash": {CAR.SONATA_LF_TURBO},
+              CAR.GRANDEUR_HEV, CAR.GRANDEUR, CAR.KONA, CAR.OPTIMA_HEV}, #후측방 감지 BSM 옵션이 있는 차량의 경우 넣어주세요.
 }
 
 DBC = {
   # genesis
   CAR.GENESIS: dbc_dict('hyundai_kia_generic', None),
-  CAR.GENESIS_G70: dbc_dict('hyundai_kia_generic', None),  
+  CAR.GENESIS_G70: dbc_dict('hyundai_kia_generic', None),
   CAR.GENESIS_G80: dbc_dict('hyundai_kia_generic', None),
   CAR.GENESIS_G90: dbc_dict('hyundai_kia_generic', None),
-  CAR.GENESIS_G90_L: dbc_dict('hyundai_kia_generic', None),
   # hyundai
   CAR.ELANTRA: dbc_dict('hyundai_kia_generic', None),
   CAR.ELANTRA_GT_I30: dbc_dict('hyundai_kia_generic', None),
@@ -204,12 +197,11 @@ DBC = {
   CAR.SONATA_HEV: dbc_dict('hyundai_kia_generic', None),
   CAR.SONATA19: dbc_dict('hyundai_kia_generic', None),
   CAR.SONATA19_HEV: dbc_dict('hyundai_kia_generic', None),
-  CAR.SONATA_LF_TURBO: dbc_dict('hyundai_kia_generic', None),
   CAR.KONA: dbc_dict('hyundai_kia_generic', None),
   CAR.KONA_EV: dbc_dict('hyundai_kia_generic', None),
   CAR.KONA_HEV: dbc_dict('hyundai_kia_generic', None),
-  CAR.IONIQ: dbc_dict('hyundai_kia_generic', None),
-  CAR.IONIQ_EV_LTD: dbc_dict('hyundai_kia_generic', None),
+  CAR.IONIQ_EV: dbc_dict('hyundai_kia_generic', None),
+  CAR.IONIQ_HEV: dbc_dict('hyundai_kia_generic', None),
   CAR.SANTA_FE: dbc_dict('hyundai_kia_generic', None),
   CAR.PALISADE: dbc_dict('hyundai_kia_generic', None),
   CAR.VELOSTER: dbc_dict('hyundai_kia_generic', None),
@@ -220,9 +212,9 @@ DBC = {
   CAR.FORTE: dbc_dict('hyundai_kia_generic', None),
   CAR.OPTIMA: dbc_dict('hyundai_kia_generic', None),
   CAR.OPTIMA_HEV: dbc_dict('hyundai_kia_generic', None),
-  CAR.SPORTAGE: dbc_dict('hyundai_kia_generic', None),  
+  CAR.SPORTAGE: dbc_dict('hyundai_kia_generic', None),
   CAR.SORENTO: dbc_dict('hyundai_kia_generic', None),
-  CAR.STINGER: dbc_dict('hyundai_kia_generic', None),  
+  CAR.STINGER: dbc_dict('hyundai_kia_generic', None),
   CAR.NIRO_EV: dbc_dict('hyundai_kia_generic', None),
   CAR.NIRO_HEV: dbc_dict('hyundai_kia_generic', None),
   CAR.CEED: dbc_dict('hyundai_kia_generic', None),
