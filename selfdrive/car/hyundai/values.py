@@ -107,7 +107,6 @@ else: # 핑거 프린트 이슈 없는 차량은 이곳에 넣으세요.
     CAR.GENESIS_G70: [{}],
     CAR.GENESIS_G80: [{}],
     CAR.GENESIS_G90: [{}],
-    CAR.GENESIS_G90_L: [{}],
     # hyundai
     CAR.ELANTRA: [{}],
     CAR.ELANTRA_GT_I30: [{}],
