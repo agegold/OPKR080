@@ -65,6 +65,12 @@ def process_hud_alert(enabled, fingerprint, visual_alert, left_lane,
   # initialize to no warnings
   left_lane_warning = 0
   right_lane_warning = 0
+  #if left_lane_depart:
+  #  left_lane_warning = 1 if fingerprint in [CAR.GENESIS, CAR.GENESIS_G70, CAR.GENESIS_G80,
+  #                                           CAR.GENESIS_G90, CAR.GENESIS_G90_L] else 2
+  #if right_lane_depart:
+  #  right_lane_warning = 1 if fingerprint in [CAR.GENESIS, CAR.GENESIS_G70, CAR.GENESIS_G80,
+  #                                            CAR.GENESIS_G90, CAR.GENESIS_G90_L] else 2
 
   return sys_warning, sys_state, left_lane_warning, right_lane_warning
 
@@ -119,7 +125,9 @@ class CarController():
     self.dRel2 = 0
     self.yRel2 = 0
     self.vRel2 = 0
+    self.lead2_status = False
     self.cut_in_detection = 0
+    self.v_set_dis_prev = 180
 
     self.cruise_gap = 0.0
     self.cruise_gap_prev = 0
@@ -129,12 +137,14 @@ class CarController():
     self.cruise_gap_prev2 = 0
     self.cruise_gap_switch_timer2 = 0
     self.cruise_gap_switch_timer3 = 0
+    self.standstill_status = 0
+    self.standstill_status_timer = 0
 
     self.lkas_button_on = True
     self.longcontrol = CP.openpilotLongitudinalControl
     self.scc_live = not CP.radarOffCan
 
-    self.angle_differ_range = [0, 60]
+    self.angle_differ_range = [0, 45]
     self.steerMax_range = [int(self.params.get('SteerMaxBaseAdj')), SteerLimitParams.STEER_MAX]
     self.steerDeltaUp_range = [int(self.params.get('SteerDeltaUpAdj')), 5]
     self.steerDeltaDown_range = [int(self.params.get('SteerDeltaDownAdj')), 10]
@@ -196,19 +206,17 @@ class CarController():
     self.angle_steers = CS.out.steeringAngle
     self.angle_diff = abs(self.angle_steers_des) - abs(self.angle_steers)
 
-    if abs(self.outScale) >= 0.9 and CS.out.vEgo > 8:
-      self.steerMax = interp(abs(self.angle_steers), self.angle_differ_range, self.steerMax_range)
-      self.steerDeltaUp = interp(abs(self.angle_steers), self.angle_differ_range, self.steerDeltaUp_range)
-      self.steerDeltaDown = interp(abs(self.angle_steers), self.angle_differ_range, self.steerDeltaDown_range)
-      # self.steerMax_prev = interp(self.angle_diff, self.angle_differ_range, self.steerMax_range)
-      # if self.steerMax_prev > self.steerMax:
-      #   self.steerMax = self.steerMax_prev
-      # self.steerDeltaUp_prev = interp(self.angle_diff, self.angle_differ_range, self.steerDeltaUp_range)
-      # if self.steerDeltaUp_prev > self.steerDeltaUp:
-      #   self.steerDeltaUp = self.steerDeltaUp_prev
-      # self.steerDeltaDown_prev = interp(self.angle_diff, self.angle_differ_range, self.steerDeltaDown_range)
-      # if self.steerDeltaDown_prev > self.steerDeltaDown:
-      #   self.steerDeltaDown = self.steerDeltaDown_prev
+    if abs(self.outScale) >= 1 and CS.out.vEgo > 8:
+      self.steerMax_prev = interp(self.angle_diff, self.angle_differ_range, self.steerMax_range)
+      if self.steerMax_prev > self.steerMax:
+        self.steerMax = self.steerMax_prev
+      self.steerDeltaUp_prev = interp(self.angle_diff, self.angle_differ_range, self.steerDeltaUp_range)
+      if self.steerDeltaUp_prev > self.steerDeltaUp:
+        self.steerDeltaUp = self.steerDeltaUp_prev
+      self.steerDeltaDown_prev = interp(self.angle_diff, self.angle_differ_range, self.steerDeltaDown_range)
+      if self.steerDeltaDown_prev > self.steerDeltaDown:
+        self.steerDeltaDown = self.steerDeltaDown_prev
+
     #if abs(self.outScale) >= 0.9 and CS.out.vEgo > 8:
     #  self.steerMax_timer += 1
     #  self.steerDeltaUp_timer += 1
@@ -286,8 +294,8 @@ class CarController():
       self.lanechange_manual_timer = 50
     if CS.out.leftBlinker and CS.out.rightBlinker:
       self.emergency_manual_timer = 50
-    # if self.lanechange_manual_timer:   # 저속에서 방향지시등 켰을때 차선을 계속 유지하려면 이 부분을 막으면 됨
-    #   lkas_active = 0
+    if self.lanechange_manual_timer:
+      lkas_active = 0
     if self.lanechange_manual_timer > 0:
       self.lanechange_manual_timer -= 1
     if self.emergency_manual_timer > 0:
@@ -370,7 +378,7 @@ class CarController():
     if frame % 2 and CS.mdps_bus: # send clu11 to mdps if it is not on bus 0
       can_sends.append(create_clu11(self.packer, frame, CS.mdps_bus, CS.clu11, Buttons.NONE, enabled_speed))
 
-    str_log1 = '곡률={:03.0f}  토크={:03.0f}  프레임률={:03.0f} ST={:03.0f}/{:01.0f}/{:01.0f}'.format(abs(self.model_speed), abs(new_steer), self.timer1.sampleTime(), self.steerMax, self.steerDeltaUp, self.steerDeltaDown)
+    str_log1 = 'CV={:03.0f}  TQ={:03.0f}  FR={:03.0f}  ST={:03.0f}/{:01.0f}/{:01.0f}'.format(abs(self.model_speed), abs(new_steer), self.timer1.sampleTime(), self.steerMax, self.steerDeltaUp, self.steerDeltaDown)
     trace1.printf1('{}  {}'.format(str_log1, self.str_log2))
 
     if CS.out.cruiseState.modeSel == 0 and self.mode_change_switch == 3:
@@ -416,7 +424,7 @@ class CarController():
         self.leadcar_status = "-"
 
 
-      str_log2 = '주행모드={:s}  MDPS상태={:s}  LKAS버튼={:s}  크루즈갭={:1.0f}  선행차인식={:s}'.format(self.steer_mode, self.mdps_status, self.lkas_switch, self.cruise_gap, self.leadcar_status)
+      str_log2 = '모드={:s}  MDPS상태={:s}  LKAS버튼={:s}  크루즈갭={:1.0f}  선행차인식={:s}'.format(self.steer_mode, self.mdps_status, self.lkas_switch, self.cruise_gap, self.leadcar_status)
       trace1.printf2( '{}'.format( str_log2 ) )
 
 
@@ -424,32 +432,52 @@ class CarController():
       can_sends.append(create_clu11(self.packer, frame, CS.scc_bus, CS.clu11, Buttons.CANCEL, clu11_speed))
 
     if CS.out.cruiseState.standstill:
+      self.standstill_status = 1
       if self.opkr_autoresumeoption == 1:
+        # run only first time when the car stopped
         if self.last_lead_distance == 0 or not self.opkr_autoresume:
+          # get the lead distance from the Radar
           self.last_lead_distance = CS.lead_distance
           self.resume_cnt = 0
-          self.resume_wait_timer = 0
-        elif self.resume_wait_timer > 0:
-          self.resume_wait_timer -= 1
-        elif CS.lead_distance != self.last_lead_distance:
+        # when lead car starts moving, create 6 RES msgs
+        elif CS.lead_distance != self.last_lead_distance and (frame - self.last_resume_frame) > 5 and self.opkr_autoresume:
           can_sends.append(create_clu11(self.packer, frame, CS.scc_bus, CS.clu11, Buttons.RES_ACCEL, clu11_speed))
           self.resume_cnt += 1
+          # interval after 6 msgs
           if self.resume_cnt > 5:
+            self.last_resume_frame = frame
             self.resume_cnt = 0
-            self.resume_wait_timer = int(0.25 / DT_CTRL)
-        elif self.cruise_gap_prev == 0 and run_speed_ctrl: 
+        elif self.cruise_gap_prev == 0 and self.opkr_autoresume: 
           self.cruise_gap_prev = CS.cruiseGapSet
           self.cruise_gap_set_init = 1
-        elif CS.cruiseGapSet != 1.0 and run_speed_ctrl:
+        elif CS.cruiseGapSet != 1.0 and self.opkr_autoresume:
           self.cruise_gap_switch_timer += 1
           if self.cruise_gap_switch_timer > 100:
             can_sends.append(create_clu11(self.packer, frame, CS.scc_bus, CS.clu11, Buttons.GAP_DIST, clu11_speed))
             self.cruise_gap_switch_timer = 0
-        else:
+        # 처음 standstill 진입 후 gap세팅 후 1초후에 RES or SET을 눌러줌. 상태메시지 바뀔때까지 최대 6회 누르며 오류로 주차브레이크 걸리는지 테스트 하기 위한 용도?
+        elif 100 < self.standstill_fault_reduce_timer < 107 and self.opkr_autoresume:
+          if self.v_set_dis_prev >= int(CS.VSetDis):
+            self.v_set_dis_prev = int(CS.VSetDis)
+            can_sends.append(create_clu11(self.packer, frame, CS.scc_bus, CS.clu11, Buttons.RES_ACCEL, clu11_speed))
+          elif self.v_set_dis_prev <= int(CS.VSetDis):
+            self.v_set_dis_prev = int(CS.VSetDis)
+            can_sends.append(create_clu11(self.packer, frame, CS.scc_bus, CS.clu11, Buttons.SET_DECEL, clu11_speed))
           self.standstill_fault_reduce_timer += 1
-          if CS.out.cruiseState.standstill and self.standstill_fault_reduce_timer > 50:
-            can_sends.append(create_clu11(self.packer, frame, CS.scc_bus, CS.clu11, Buttons.NONE, clu11_speed))
-            self.standstill_fault_reduce_timer = 0
+        elif self.opkr_autoresume:
+          self.standstill_fault_reduce_timer += 1
+           # 30초마다 RES or SET을 최대6번 눌러줌. 재출발 시 오류방지를 위한 개인적인 해결책? 3.7m 이런얘기도 있는데, 콤마코드에서 빠진거보면 뭔가 다른게 있는듯 합니다.
+          if self.standstill_fault_reduce_timer // 3000 >= 1:
+            if 3000 < self.standstill_fault_reduce_timer < 3007 and self.v_set_dis_prev >= int(CS.VSetDis):
+              self.v_set_dis_prev = int(CS.VSetDis)
+              can_sends.append(create_clu11(self.packer, frame, CS.scc_bus, CS.clu11, Buttons.RES_ACCEL, clu11_speed))
+              if self.standstill_fault_reduce_timer >= 3006:
+                self.standstill_fault_reduce_timer = 108
+            elif 3000 < self.standstill_fault_reduce_timer < 3007 and self.v_set_dis_prev <= int(CS.VSetDis):
+              self.v_set_dis_prev = int(CS.VSetDis)
+              can_sends.append(create_clu11(self.packer, frame, CS.scc_bus, CS.clu11, Buttons.SET_DECEL, clu11_speed))
+              if self.standstill_fault_reduce_timer >= 3006:
+                self.standstill_fault_reduce_timer = 108
       else:
         # run only first time when the car stopped
         if self.last_lead_distance == 0 or not self.opkr_autoresume:
@@ -457,26 +485,21 @@ class CarController():
           self.last_lead_distance = CS.lead_distance
           self.resume_cnt = 0
         # when lead car starts moving, create 6 RES msgs
-        elif CS.lead_distance != self.last_lead_distance and (frame - self.last_resume_frame) > 5:
+        elif CS.lead_distance != self.last_lead_distance and (frame - self.last_resume_frame) > 5 and self.opkr_autoresume:
           can_sends.append(create_clu11(self.packer, frame, CS.scc_bus, CS.clu11, Buttons.RES_ACCEL, clu11_speed))
           self.resume_cnt += 1
           # interval after 6 msgs
           if self.resume_cnt > 5:
             self.last_resume_frame = frame
             self.resume_cnt = 0
-        elif self.cruise_gap_prev == 0: 
+        elif self.cruise_gap_prev == 0 and self.opkr_autoresume: 
           self.cruise_gap_prev = CS.cruiseGapSet
           self.cruise_gap_set_init = 1
-        elif CS.cruiseGapSet != 1.0:
+        elif CS.cruiseGapSet != 1.0 and self.opkr_autoresume:
           self.cruise_gap_switch_timer += 1
           if self.cruise_gap_switch_timer > 100:
             can_sends.append(create_clu11(self.packer, frame, CS.scc_bus, CS.clu11, Buttons.GAP_DIST, clu11_speed))
             self.cruise_gap_switch_timer = 0
-        else:
-          self.standstill_fault_reduce_timer += 1
-          if CS.out.cruiseState.standstill and self.standstill_fault_reduce_timer > 50:
-            can_sends.append(create_clu11(self.packer, frame, CS.scc_bus, CS.clu11, Buttons.NONE, clu11_speed))
-            self.standstill_fault_reduce_timer = 0            
 
     # reset lead distnce after the car starts moving
     elif self.last_lead_distance != 0:
@@ -488,35 +511,45 @@ class CarController():
         self.resume_cnt += 1
       else:
         self.resume_cnt = 0
-      if self.dRel > 17 and self.vRel < 5 and self.cruise_gap_prev != CS.cruiseGapSet and self.cruise_gap_set_init == 1:
+      if self.dRel > 17 and self.vRel < 5 and self.cruise_gap_prev != CS.cruiseGapSet and self.cruise_gap_set_init == 1 and self.opkr_autoresume:
         self.cruise_gap_switch_timer += 1
         if self.cruise_gap_switch_timer > 50:
           can_sends.append(create_clu11(self.packer, frame, CS.scc_bus, CS.clu11, Buttons.GAP_DIST, clu11_speed))
           self.cruise_gap_switch_timer = 0
-      elif self.cruise_gap_prev == CS.cruiseGapSet:
+      elif self.cruise_gap_prev == CS.cruiseGapSet and self.opkr_autoresume:
         self.cruise_gap_set_init = 0
         self.cruise_gap_prev = 0
-      if CS.out.vEgo > 8 and self.lead2_status and self.dRel - self.dRel2 > 3 and self.cut_in_detection == 0 and self.cruise_gap_prev2 == 0:
-        self.cut_in_detection = 1
-        self.cruise_gap_prev2 = CS.cruiseGapSet
-      elif CS.out.vEgo > 8 and self.cut_in_detection == 1 and CS.cruiseGapSet != 1.0:
-        self.cruise_gap_switch_timer2 += 1
-        if self.cruise_gap_switch_timer2 > 150:
-          can_sends.append(create_clu11(self.packer, frame, CS.scc_bus, CS.clu11, Buttons.GAP_DIST, clu11_speed))
-          self.cruise_gap_switch_timer2 = 0
-      elif CS.out.vEgo > 8 and self.cut_in_detection == 1 and CS.cruiseGapSet == 1.0:
-        self.cruise_gap_switch_timer2 += 1
-        if self.cruise_gap_switch_timer2 > 600:
-          if self.cruise_gap_prev2 != CS.cruiseGapSet:
-            self.cruise_gap_switch_timer3 += 1
-            if self.cruise_gap_switch_timer3 > 50:
-              can_sends.append(create_clu11(self.packer, frame, CS.scc_bus, CS.clu11, Buttons.GAP_DIST, clu11_speed))
-              self.cruise_gap_switch_timer3 = 0
-      elif self.cruise_gap_prev2 == CS.cruiseGapSet:
-        self.cut_in_detection == 0
-        self.cruise_gap_prev2 = 0
-        self.cruise_gap_switch_timer2 = 0
-        self.cruise_gap_switch_timer3 = 0
+      #if CS.out.vEgo > 8 and self.lead2_status and self.dRel - self.dRel2 > 3 and self.cut_in_detection == 0 and self.cruise_gap_prev2 == 0:
+      #  self.cut_in_detection = 1
+      #  self.cruise_gap_prev2 = CS.cruiseGapSet
+      #elif CS.out.vEgo > 8 and self.cut_in_detection == 1 and CS.cruiseGapSet != 1.0:
+      #  self.cruise_gap_switch_timer2 += 1
+      #  if self.cruise_gap_switch_timer2 > 150:
+      #    can_sends.append(create_clu11(self.packer, frame, CS.scc_bus, CS.clu11, Buttons.GAP_DIST, clu11_speed))
+      #    self.cruise_gap_switch_timer2 = 0
+      #elif CS.out.vEgo > 8 and self.cut_in_detection == 1 and CS.cruiseGapSet == 1.0:
+      #  self.cruise_gap_switch_timer2 += 1
+      #  if self.cruise_gap_switch_timer2 > 600:
+      #    if self.cruise_gap_prev2 != CS.cruiseGapSet:
+      #      self.cruise_gap_switch_timer3 += 1
+      #      if self.cruise_gap_switch_timer3 > 50:
+      #        can_sends.append(create_clu11(self.packer, frame, CS.scc_bus, CS.clu11, Buttons.GAP_DIST, clu11_speed))
+      #        self.cruise_gap_switch_timer3 = 0
+      #elif self.cruise_gap_prev2 == CS.cruiseGapSet:
+      #  self.cut_in_detection == 0
+      #  self.cruise_gap_prev2 = 0
+      #  self.cruise_gap_switch_timer2 = 0
+      #  self.cruise_gap_switch_timer3 = 0
+    
+    if CS.out.brakeLights and CS.out.vEgo == 0 and not CS.acc_active:
+      self.standstill_status_timer += 1
+      if self.standstill_status_timer > 200:
+        self.standstill_status = 1
+        self.standstill_status_timer = 0
+    if self.standstill_status == 1 and CS.out.vEgo > 1:
+      self.standstill_status = 0
+      self.standstill_fault_reduce_timer = 0
+      self.v_set_dis_prev = 180
 
     if CS.mdps_bus: # send mdps12 to LKAS to prevent LKAS error
       can_sends.append(create_mdps12(self.packer, frame, CS.mdps12))
